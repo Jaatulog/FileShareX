@@ -1,0 +1,92 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
+  color: #333;
+}
+
+.container {
+  width: 80%;
+  margin: auto;
+  padding: 20px;
+  text-align: center;
+}
+
+form {
+  margin-bottom: 30px;
+}
+
+input[type="text"], input[type="file"], input[type="number"] {
+  display: block;
+  margin: 10px auto;
+  padding: 10px;
+  width: 50%;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #5a67d8;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #4c51bf;
+}
+
+.file-list {
+  list-style: none;
+  padding: 0;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #ccc;
+  padding: 10px;
+}
+
+.profile-pic {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 15px;
+}
+
+.file-info {
+  text-align: left;
+}
+
+.file-icon {
+  width: 20px;
+  height: 20px;
+  margin-left: 10px;
+}
+
+/* Existing styles */
+
+.button {
+  padding: 8px 15px;
+  margin: 5px;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.download-btn {
+  background-color: #4CAF50; /* Green */
+}
+
+.download-btn:hover {
+  background-color: #45a049;
+}
+
+.delete-btn {
+  background-color: #f44336; /* Red */
+}
+
+.delete-btn:hover {
+  background-color: #e53935;
+}

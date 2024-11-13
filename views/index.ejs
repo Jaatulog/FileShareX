@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Sharing Web App</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
+  color: #333;
+}
+
+.container {
+  width: 80%;
+  margin: auto;
+  padding: 20px;
+  text-align: center;
+}
+
+form {
+  margin-bottom: 30px;
+}
+
+input[type="text"], input[type="file"], input[type="number"] {
+  display: block;
+  margin: 10px auto;
+  padding: 10px;
+  width: 50%;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #5a67d8;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #4c51bf;
+}
+
+.file-list {
+  list-style: none;
+  padding: 0;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #ccc;
+  padding: 10px;
+}
+
+.profile-pic {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 15px;
+}
+
+.file-info {
+  text-align: left;
+}
+
+.file-icon {
+  width: 20px;
+  height: 20px;
+  margin-left: 10px;
+}
+
+/* Existing styles */
+
+.button {
+  padding: 8px 15px;
+  margin: 5px;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.download-btn {
+  background-color: #4CAF50; /* Green */
+}
+
+.download-btn:hover {
+  background-color: #45a049;
+}
+
+.delete-btn {
+  background-color: #f44336; /* Red */
+}
+
+.delete-btn:hover {
+  background-color: #e53935;
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload and Share Files</h1>
+
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+            <input type="text" name="name" placeholder="Your Name" required>
+            <input type="file" name="file" required>
+            <label for="expiresInMinutes">Expires in (minutes):</label>
+            <input type="number" name="expiresInMinutes" placeholder="e.g., 60" required>
+            <button type="submit">Upload</button>
+        </form>
+
+        <h2>Uploaded Files</h2>
+        <ul class="file-list">
+            <% files.forEach(file => { %>
+                <li class="file-item">
+                    <img src="/<%= file.profilePic %>" alt="Profile Picture" class="profile-pic">
+                    <div class="file-info">
+                        <h3><%= file.name %></h3>
+                        <p>Uploaded: <%= file.uploadedAt %></p>
+                        <p>Expires: <%= file.expiresIn %></p>
+                        <p>File: <%= file.originalname %></p>
+                        <img src="/icons/<%= file.fileType.slice(1) %>.png" alt="<%= file.fileType %> icon" class="file-icon">
+                        <a href="/download/<%= file.filename %>" class="button download-btn">Download</a>
+                        <form action="/delete/<%= file.filename %>" method="POST" style="display: inline;">
+                            <button type="submit" class="button delete-btn">Delete</button>
+                        </form>
+                    </div>
+                </li>
+            <% }); %>
+        </ul>
+    </div>
+</body>
+</html>
