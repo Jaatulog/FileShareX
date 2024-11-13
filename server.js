@@ -6,6 +6,8 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
+const fileDataPath = path.join(__dirname, 'files.json'); // JSON file to store file metadata
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(session({ secret: 'secret-key', resave: false, saveUninitialized: true }));
@@ -26,22 +28,29 @@ app.set('views', path.join(__dirname, 'views'));
 // Function to get a random profile picture from the 'profile' folder
 function getRandomProfilePic() {
     const profileDir = path.join(__dirname, 'public/profile');
-    const profilePics = fs.readdirSync(profileDir).filter(file => {
-        // Filter to only include image files (jpg, png, etc.)
-        return /\.(jpg|jpeg|png|gif)$/i.test(file);
-    });
-    // Randomly select one profile picture
-    const randomPic = profilePics[Math.floor(Math.random() * profilePics.length)];
-    return path.join('profile', randomPic); // Return the relative path to the profile picture
+    const profilePics = fs.readdirSync(profileDir).filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file));
+    return path.join('profile', profilePics[Math.floor(Math.random() * profilePics.length)]);
 }
 
-// Function to check and delete expired files
-function checkAndDeleteExpiredFiles(req) {
-    const currentTime = moment();
-    req.session.files = req.session.files || [];
+// Load file data from JSON
+function loadFileData() {
+    try {
+        return JSON.parse(fs.readFileSync(fileDataPath, 'utf8'));
+    } catch (err) {
+        return [];
+    }
+}
 
-    // Remove expired files from session and filesystem
-    req.session.files = req.session.files.filter(file => {
+// Save file data to JSON
+function saveFileData(files) {
+    fs.writeFileSync(fileDataPath, JSON.stringify(files, null, 2));
+}
+
+// Check and delete expired files
+function checkAndDeleteExpiredFiles() {
+    const files = loadFileData();
+    const currentTime = moment();
+    const updatedFiles = files.filter(file => {
         const isExpired = currentTime.isAfter(moment(file.expiresIn));
         if (isExpired) {
             const filePath = path.join(__dirname, 'public/uploads', file.filename);
@@ -55,12 +64,14 @@ function checkAndDeleteExpiredFiles(req) {
         }
         return !isExpired;
     });
+    saveFileData(updatedFiles);
 }
 
 // Route to display uploaded files
 app.get('/', (req, res) => {
-    checkAndDeleteExpiredFiles(req);
-    res.render('index', { files: req.session.files || [] });
+    checkAndDeleteExpiredFiles();
+    const files = loadFileData();
+    res.render('index', { files });
 });
 
 // Route to handle file upload
@@ -72,7 +83,7 @@ app.post('/upload', upload.single('file'), (req, res) => {
 
     const fileData = {
         name,
-        profilePic: getRandomProfilePic(), // Assign random profile picture
+        profilePic: getRandomProfilePic(),
         originalname: req.file.originalname,
         filename: req.file.filename,
         fileType: path.extname(req.file.originalname).toLowerCase(),
@@ -80,8 +91,9 @@ app.post('/upload', upload.single('file'), (req, res) => {
         expiresIn: moment().add(expiresInMinutes, 'minutes').format('YYYY-MM-DD HH:mm:ss'),
     };
 
-    req.session.files = req.session.files || [];
-    req.session.files.push(fileData);
+    const files = loadFileData();
+    files.push(fileData);
+    saveFileData(files);
 
     res.redirect('/');
 });
@@ -89,8 +101,6 @@ app.post('/upload', upload.single('file'), (req, res) => {
 // Route to handle file download
 app.get('/download/:filename', (req, res) => {
     const filePath = path.join(__dirname, 'public/uploads', req.params.filename);
-
-    // Check if the file exists before attempting to download
     fs.exists(filePath, exists => {
         if (exists) {
             res.download(filePath);
@@ -104,8 +114,9 @@ app.get('/download/:filename', (req, res) => {
 app.post('/delete/:filename', (req, res) => {
     const filename = req.params.filename;
 
-    // Remove file data from session
-    req.session.files = req.session.files.filter(file => file.filename !== filename);
+    let files = loadFileData();
+    files = files.filter(file => file.filename !== filename);
+    saveFileData(files);
 
     const filePath = path.join(__dirname, 'public/uploads', filename);
     fs.unlink(filePath, err => {
