@@ -6,112 +6,134 @@
     <title>File Sharing Web App</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f9;
-  color: #333;
-}
-
-.container {
-  width: 80%;
-  margin: auto;
-  padding: 20px;
-  text-align: center;
-}
-
-form {
-  margin-bottom: 30px;
-}
-
-input[type="text"], input[type="file"], input[type="number"] {
-  display: block;
-  margin: 10px auto;
-  padding: 10px;
-  width: 50%;
-}
-
-button {
-  padding: 10px 20px;
-  background-color: #5a67d8;
-  color: white;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
-}
-
-button:hover {
-  background-color: #4c51bf;
-}
-
-.file-list {
-  list-style: none;
-  padding: 0;
-}
-
-.file-item {
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #ccc;
-  padding: 10px;
-}
-
-.profile-pic {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  margin-right: 15px;
-}
-
-.file-info {
-  text-align: left;
-}
-
-.file-icon {
-  width: 20px;
-  height: 20px;
-  margin-left: 10px;
-}
-
-/* Existing styles */
-
-.button {
-  padding: 8px 15px;
-  margin: 5px;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.download-btn {
-  background-color: #4CAF50; /* Green */
-}
-
-.download-btn:hover {
-  background-color: #45a049;
-}
-
-.delete-btn {
-  background-color: #f44336; /* Red */
-}
-
-.delete-btn:hover {
-  background-color: #e53935;
-}
-
-    </style>
+      body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      }
+      
+      .container {
+      width: 80%;
+      margin: auto;
+      padding: 20px;
+      text-align: center;
+      }
+      
+      form {
+      margin-bottom: 30px;
+      }
+      
+      input[type="text"], input[type="file"], input[type="number"] {
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      width: 50%;
+      }
+      
+      button {
+      padding: 10px 20px;
+      background-color: #5a67d8;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      }
+      
+      button:hover {
+      background-color: #4c51bf;
+      }
+      
+      .file-list {
+      list-style: none;
+      padding: 0;
+      }
+      
+      .file-item {
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #ccc;
+      padding: 10px;
+      }
+      
+      .profile-pic {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      margin-right: 15px;
+      }
+      
+      .file-info {
+      text-align: left;
+      }
+      
+      .file-icon {
+      width: 20px;
+      height: 20px;
+      margin-left: 10px;
+      }
+      
+      /* Existing styles */
+      
+      .button {
+      padding: 8px 15px;
+      margin: 5px;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      }
+      
+      .download-btn {
+      background-color: #4CAF50; /* Green */
+      }
+      
+      .download-btn:hover {
+      background-color: #45a049;
+      }
+      
+      .delete-btn {
+      background-color: #f44336; /* Red */
+      }
+      
+      .delete-btn:hover {
+      background-color: #e53935;
+      }
+      
+      #uploadProgressContainer, #downloadProgressContainer {
+        font-family: monospace;
+        margin: 10px 0;
+      }
+      
+      #uploadProgressBar, #downloadProgressBar {
+        display: inline-block;
+        width: 100%;
+        font-size: 16px;
+        color: limegreen;
+        background-color: black;
+        padding: 5px;
+        border: 1px solid limegreen;
+      }
+      
+      </style>
 </head>
 <body>
     <div class="container">
         <h1>Upload and Share Files</h1>
 
-        <form action="/upload" method="POST" enctype="multipart/form-data">
+        <!-- Upload Form -->
+        <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
             <input type="text" name="name" placeholder="Your Name" required>
             <input type="file" name="file" required>
             <label for="expiresInMinutes">Expires in (minutes):</label>
             <input type="number" name="expiresInMinutes" placeholder="e.g., 60" required>
             <button type="submit">Upload</button>
         </form>
+
+        <!-- Upload Progress Bar -->
+        <div id="uploadProgressContainer" style="display: none;">
+            <p>Upload Progress:</p>
+            <pre id="uploadProgressBar">[                    ] 0%</pre>
+        </div>
 
         <h2>Uploaded Files</h2>
         <ul class="file-list">
@@ -124,7 +146,7 @@ button:hover {
                         <p>Expires: <%= file.expiresIn %></p>
                         <p>File: <%= file.originalname %></p>
                         <img src="/icons/<%= file.fileType.slice(1) %>.png" alt="<%= file.fileType %> icon" class="file-icon">
-                        <a href="/download/<%= file.filename %>" class="button download-btn">Download</a>
+                        <a href="/download/<%= file.filename %>" class="button download-btn" onclick="downloadFile('<%= file.filename %>')">Download</a>
                         <form action="/delete/<%= file.filename %>" method="POST" style="display: inline;">
                             <button type="submit" class="button delete-btn">Delete</button>
                         </form>
@@ -132,6 +154,91 @@ button:hover {
                 </li>
             <% }); %>
         </ul>
+
+        <!-- Download Progress Bar -->
+        <div id="downloadProgressContainer" style="display: none;">
+            <p>Download Progress:</p>
+            <pre id="downloadProgressBar">[                    ] 0%</pre>
+        </div>
     </div>
+
+    <script>
+        // Upload Progress
+        const uploadForm = document.getElementById('uploadForm');
+        const uploadProgressBar = document.getElementById('uploadProgressBar');
+        const uploadProgressContainer = document.getElementById('uploadProgressContainer');
+
+        uploadForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(uploadForm);
+            const xhr = new XMLHttpRequest();
+
+            xhr.open('POST', '/upload', true);
+
+            xhr.upload.onprogress = function(event) {
+                if (event.lengthComputable) {
+                    const percentComplete = Math.round((event.loaded / event.total) * 100);
+                    updateProgressBar(uploadProgressBar, percentComplete);
+                    uploadProgressContainer.style.display = 'block';
+                }
+            };
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    alert('File uploaded successfully!');
+                    updateProgressBar(uploadProgressBar, 0); // Reset progress bar after upload
+                    uploadProgressContainer.style.display = 'none';
+                    location.reload(); // Reload the page to show the uploaded file
+                } else {
+                    alert('Error uploading file');
+                }
+            };
+
+            xhr.send(formData);
+        });
+
+        // Download Progress
+        function downloadFile(filename) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `/download/${filename}`, true);
+            xhr.responseType = 'blob';
+
+            xhr.onprogress = function(event) {
+                if (event.lengthComputable) {
+                    const percentComplete = Math.round((event.loaded / event.total) * 100);
+                    updateProgressBar(downloadProgressBar, percentComplete);
+                    downloadProgressContainer.style.display = 'block';
+                }
+            };
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const url = window.URL.createObjectURL(xhr.response);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    updateProgressBar(downloadProgressBar, 0); // Reset progress bar
+                    downloadProgressContainer.style.display = 'none';
+                } else {
+                    alert('Error downloading file');
+                }
+            };
+
+            xhr.send();
+        }
+
+        // Function to update the progress bar text content
+        function updateProgressBar(barElement, percentComplete) {
+            const progressBarWidth = 20; // Number of characters in the bar
+            const filledBars = Math.round((percentComplete / 100) * progressBarWidth);
+            const emptyBars = progressBarWidth - filledBars;
+            barElement.textContent = `[${'='.repeat(filledBars)}${' '.repeat(emptyBars)}] ${percentComplete}%`;
+        }
+    </script>
 </body>
 </html>
