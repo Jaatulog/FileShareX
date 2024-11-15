@@ -6,115 +6,115 @@
     <title>File Sharing Web App</title>
     <link rel="stylesheet" href="style.css">
     <style>
-      body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f9;
-      color: #333;
-      }
-      
-      .container {
-      width: 80%;
-      margin: auto;
-      padding: 20px;
-      text-align: center;
-      }
-      
-      form {
-      margin-bottom: 30px;
-      }
-      
-      input[type="text"], input[type="file"], input[type="number"] {
-      display: block;
-      margin: 10px auto;
-      padding: 10px;
-      width: 50%;
-      }
-      
-      button {
-      padding: 10px 20px;
-      background-color: #5a67d8;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-      }
-      
-      button:hover {
-      background-color: #4c51bf;
-      }
-      
-      .file-list {
-      list-style: none;
-      padding: 0;
-      }
-      
-      .file-item {
-      display: flex;
-      align-items: center;
-      border-bottom: 1px solid #ccc;
-      padding: 10px;
-      }
-      
-      .profile-pic {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      margin-right: 15px;
-      }
-      
-      .file-info {
-      text-align: left;
-      }
-      
-      .file-icon {
-      width: 20px;
-      height: 20px;
-      margin-left: 10px;
-      }
-      
-      /* Existing styles */
-      
-      .button {
-      padding: 8px 15px;
-      margin: 5px;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      }
-      
-      .download-btn {
-      background-color: #4CAF50; /* Green */
-      }
-      
-      .download-btn:hover {
-      background-color: #45a049;
-      }
-      
-      .delete-btn {
-      background-color: #f44336; /* Red */
-      }
-      
-      .delete-btn:hover {
-      background-color: #e53935;
-      }
-      
-      #uploadProgressContainer, #downloadProgressContainer {
-        font-family: monospace;
-        margin: 10px 0;
-      }
-      
-      #uploadProgressBar, #downloadProgressBar {
-        display: inline-block;
-        width: 100%;
-        font-size: 16px;
-        color: limegreen;
-        background-color: black;
-        padding: 5px;
-        border: 1px solid limegreen;
-      }
-      
-      </style>
+        body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        color: #333;
+        }
+        
+        .container {
+        width: 80%;
+        margin: auto;
+        padding: 20px;
+        text-align: center;
+        }
+        
+        form {
+        margin-bottom: 30px;
+        }
+        
+        input[type="text"], input[type="file"], input[type="number"] {
+        display: block;
+        margin: 10px auto;
+        padding: 10px;
+        width: 50%;
+        }
+        
+        button {
+        padding: 10px 20px;
+        background-color: #5a67d8;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+        }
+        
+        button:hover {
+        background-color: #4c51bf;
+        }
+        
+        .file-list {
+        list-style: none;
+        padding: 0;
+        }
+        
+        .file-item {
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #ccc;
+        padding: 10px;
+        }
+        
+        .profile-pic {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-right: 15px;
+        }
+        
+        .file-info {
+        text-align: left;
+        }
+        
+        .file-icon {
+        width: 20px;
+        height: 20px;
+        margin-left: 10px;
+        }
+        
+        /* Existing styles */
+        
+        .button {
+        padding: 8px 15px;
+        margin: 5px;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        }
+        
+        .download-btn {
+        background-color: #4CAF50; /* Green */
+        }
+        
+        .download-btn:hover {
+        background-color: #45a049;
+        }
+        
+        .delete-btn {
+        background-color: #f44336; /* Red */
+        }
+        
+        .delete-btn:hover {
+        background-color: #e53935;
+        }
+        
+        #uploadProgressContainer, #downloadProgressContainer {
+          font-family: monospace;
+          margin: 10px 0;
+        }
+        
+        #uploadProgressBar, #downloadProgressBar {
+          display: inline-block;
+          width: 100%;
+          font-size: 16px;
+          color: limegreen;
+          background-color: black;
+          padding: 5px;
+          border: 1px solid limegreen;
+        }
+        
+        </style>
 </head>
 <body>
     <div class="container">
@@ -126,6 +126,7 @@
             <input type="file" name="file" required>
             <label for="expiresInMinutes">Expires in (minutes):</label>
             <input type="number" name="expiresInMinutes" placeholder="e.g., 60" required>
+            <input type="password" name="password" placeholder="Set a password for deletion" required>
             <button type="submit">Upload</button>
         </form>
 
@@ -147,8 +148,11 @@
                         <p>File: <%= file.originalname %></p>
                         <img src="/icons/<%= file.fileType.slice(1) %>.png" alt="<%= file.fileType %> icon" class="file-icon">
                         <a href="/download/<%= file.filename %>" class="button download-btn" onclick="downloadFile('<%= file.filename %>')">Download</a>
-                        <form action="/delete/<%= file.filename %>" method="POST" style="display: inline;">
-                            <button type="submit" class="button delete-btn">Delete</button>
+                        
+                        <!-- Delete Button with Password Prompt -->
+                        <form action="/delete/<%= file.filename %>" method="POST" class="delete-form">
+                            <input type="hidden" name="deletePassword" class="delete-password">
+                            <button type="button" class="button delete-btn" onclick="confirmDelete(this)">Delete</button>
                         </form>
                     </div>
                 </li>
@@ -230,6 +234,18 @@
             };
 
             xhr.send();
+        }
+
+        // Confirm Delete with Password
+        function confirmDelete(button) {
+            const deletePassword = prompt("Enter the password to delete this file:");
+            if (deletePassword) {
+                const deleteForm = button.closest('.delete-form');
+                deleteForm.querySelector('.delete-password').value = deletePassword;
+                deleteForm.submit();
+            } else {
+                alert("Deletion canceled.");
+            }
         }
 
         // Function to update the progress bar text content
