@@ -6,115 +6,214 @@
     <title>File Sharing Web App</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f9;
-        color: #333;
-        }
-        
-        .container {
-        width: 80%;
-        margin: auto;
-        padding: 20px;
-        text-align: center;
-        }
-        
-        form {
-        margin-bottom: 30px;
-        }
-        
-        input[type="text"], input[type="file"], input[type="number"] {
-        display: block;
-        margin: 10px auto;
-        padding: 10px;
-        width: 50%;
-        }
-        
-        button {
-        padding: 10px 20px;
-        background-color: #5a67d8;
-        color: white;
-        border: none;
-        cursor: pointer;
-        border-radius: 5px;
-        }
-        
-        button:hover {
-        background-color: #4c51bf;
-        }
-        
-        .file-list {
-        list-style: none;
-        padding: 0;
-        }
-        
-        .file-item {
-        display: flex;
-        align-items: center;
-        border-bottom: 1px solid #ccc;
-        padding: 10px;
-        }
-        
-        .profile-pic {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        margin-right: 15px;
-        }
-        
-        .file-info {
-        text-align: left;
-        }
-        
-        .file-icon {
-        width: 20px;
-        height: 20px;
-        margin-left: 10px;
-        }
-        
-        /* Existing styles */
-        
-        .button {
-        padding: 8px 15px;
-        margin: 5px;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        }
-        
-        .download-btn {
-        background-color: #4CAF50; /* Green */
-        }
-        
-        .download-btn:hover {
-        background-color: #45a049;
-        }
-        
-        .delete-btn {
-        background-color: #f44336; /* Red */
-        }
-        
-        .delete-btn:hover {
-        background-color: #e53935;
-        }
-        
-        #uploadProgressContainer, #downloadProgressContainer {
-          font-family: monospace;
-          margin: 10px 0;
-        }
-        
-        #uploadProgressBar, #downloadProgressBar {
-          display: inline-block;
-          width: 100%;
-          font-size: 16px;
-          color: limegreen;
-          background-color: black;
-          padding: 5px;
-          border: 1px solid limegreen;
-        }
-        
-        </style>
+        /* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f0f4f8;
+  color: #333;
+  line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Main Container */
+.container {
+  width: 80%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+form {
+  margin-bottom: 40px;
+}
+
+/* Input & Button Styles */
+input[type="text"], input[type="file"], input[type="number"] {
+  display: block;
+  margin: 10px auto;
+  padding: 12px;
+  width: 60%;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus, input[type="file"]:focus, input[type="number"]:focus {
+  border-color: #5a67d8;
+}
+
+button {
+  padding: 12px 24px;
+  background-color: #5a67d8;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #4c51bf;
+}
+
+/* File List and Item Styles */
+.file-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #e5e5e5;
+  padding: 15px;
+  transition: background-color 0.3s ease;
+}
+
+.file-item:hover {
+  background-color: #f7f7f7;
+}
+
+.profile-pic {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 20px;
+  border: 2px solid #ddd;
+}
+
+.file-info {
+  flex: 1;
+  text-align: left;
+}
+
+.file-name {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.file-date {
+  font-size: 12px;
+  color: #888;
+}
+
+.file-icon {
+  width: 24px;
+  height: 24px;
+  margin-left: 10px;
+  transition: transform 0.3s ease;
+}
+
+.file-icon:hover {
+  transform: scale(1.2);
+}
+
+/* Action Button Styles */
+.button {
+  padding: 8px 16px;
+  margin: 5px;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.download-btn {
+  background-color: #4CAF50; /* Green */
+}
+
+.download-btn:hover {
+  background-color: #45a049;
+}
+
+.delete-btn {
+  background-color: #f44336; /* Red */
+}
+
+.delete-btn:hover {
+  background-color: #e53935;
+}
+
+/* Progress Bar Styles */
+#uploadProgressContainer, #downloadProgressContainer {
+  font-family: monospace;
+  margin: 20px 0;
+}
+
+#uploadProgressBar, #downloadProgressBar {
+  width: 100%;
+  height: 8px;
+  background-color: #ddd;
+  border-radius: 4px;
+  position: relative;
+}
+
+#uploadProgressBar::after, #downloadProgressBar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: #5a67d8;
+  border-radius: 4px;
+  width: 0%;
+  transition: width 0.5s ease-in-out;
+}
+
+#uploadProgressContainer span, #downloadProgressContainer span {
+  display: block;
+  font-size: 12px;
+  color: #5a67d8;
+  margin-top: 5px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    width: 95%;
+  }
+
+  input[type="text"], input[type="file"], input[type="number"] {
+    width: 80%;
+  }
+
+  button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-pic {
+    width: 40px;
+    height: 40px;
+  }
+
+  .file-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .file-info {
+    margin-top: 10px;
+    text-align: left;
+  }
+}
+    </style>
 </head>
 <body>
     <div class="container">
@@ -124,9 +223,9 @@
         <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
             <input type="text" name="name" placeholder="Your Name" required>
             <input type="file" name="file" required>
-            <label for="expiresInMinutes">Expires in (minutes):</label>
-            <input type="number" name="expiresInMinutes" placeholder="e.g., 60" required>
-            <input type="password" name="password" placeholder="Set a password for deletion" required>
+            <input type="text" name="description" placeholder="Enter a description for the file" required>
+            <input type="number" name="expiresInMinutes" placeholder="Expires in (minutes):" required>
+            <input type="password" name="password" placeholder="Set a password for download" required>
             <button type="submit">Upload</button>
         </form>
 
@@ -143,11 +242,12 @@
                     <img src="/<%= file.profilePic %>" alt="Profile Picture" class="profile-pic">
                     <div class="file-info">
                         <h3><%= file.name %></h3>
+                        <p>Description: <%= file.description %></p>
                         <p>Uploaded: <%= file.uploadedAt %></p>
-                        <p>Expires: <%= file.expiresIn %></p>
+                        <p>Expires: <%= file.expiresIn %> minutes</p>
                         <p>File: <%= file.originalname %></p>
                         <img src="/icons/<%= file.fileType.slice(1) %>.png" alt="<%= file.fileType %> icon" class="file-icon">
-                        <a href="/download/<%= file.filename %>" class="button download-btn" onclick="downloadFile('<%= file.filename %>')">Download</a>
+                        <a href="#" class="button download-btn" onclick="downloadFile('<%= file.filename %>', '<%= file.password %>')">Download</a>
                         
                         <!-- Delete Button with Password Prompt -->
                         <form action="/delete/<%= file.filename %>" method="POST" class="delete-form">
@@ -203,37 +303,42 @@
         });
 
         // Download Progress
-        function downloadFile(filename) {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', `/download/${filename}`, true);
-            xhr.responseType = 'blob';
+        function downloadFile(filename, filePassword) {
+            const userPassword = prompt('Enter the password to download this file:');
+            if (userPassword === filePassword) {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', `/download/${filename}`, true);
+                xhr.responseType = 'blob';
 
-            xhr.onprogress = function(event) {
-                if (event.lengthComputable) {
-                    const percentComplete = Math.round((event.loaded / event.total) * 100);
-                    updateProgressBar(downloadProgressBar, percentComplete);
-                    downloadProgressContainer.style.display = 'block';
-                }
-            };
+                xhr.onprogress = function(event) {
+                    if (event.lengthComputable) {
+                        const percentComplete = Math.round((event.loaded / event.total) * 100);
+                        updateProgressBar(downloadProgressBar, percentComplete);
+                        downloadProgressContainer.style.display = 'block';
+                    }
+                };
 
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    const url = window.URL.createObjectURL(xhr.response);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = filename;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    window.URL.revokeObjectURL(url);
-                    updateProgressBar(downloadProgressBar, 0); // Reset progress bar
-                    downloadProgressContainer.style.display = 'none';
-                } else {
-                    alert('Error downloading file');
-                }
-            };
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        const url = window.URL.createObjectURL(xhr.response);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                        updateProgressBar(downloadProgressBar, 0); // Reset progress bar
+                        downloadProgressContainer.style.display = 'none';
+                    } else {
+                        alert('Error downloading file');
+                    }
+                };
 
-            xhr.send();
+                xhr.send();
+            } else {
+                alert('Incorrect password. File download aborted.');
+            }
         }
 
         // Confirm Delete with Password
