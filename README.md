@@ -15,7 +15,7 @@ A web application that allows users to upload, share, and download files securel
 
 ## Live Demo
 
-Check out the live application [here](https://filesharex-o8ss.onrender.com/) (replace with your actual link).
+Check out the live application [here](https://filesharex-o8ss.onrender.com/)
 
 ## Features
 
