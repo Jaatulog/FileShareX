@@ -4,21 +4,27 @@ const session = require('express-session');
 const moment = require('moment');
 const path = require('path');
 const fs = require('fs');
-const { exec } = require('child_process');
 
+// Initialize Express app
 const app = express();
-const fileDataPath = path.join(__dirname, 'files.json'); // JSON file to store file metadata
+const fileDataPath = path.join(__dirname, 'files.json'); // File metadata storage
 
 // Middleware setup
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
-app.use(session({ secret: 'secret-key', resave: false, saveUninitialized: true }));
+app.use(
+    session({
+        secret: 'secret-key',
+        resave: false,
+        saveUninitialized: true,
+    })
+);
 
-// Set up multer for file uploads
+// Configure Multer for file uploads
 const storage = multer.diskStorage({
     destination: path.join(__dirname, 'public/uploads'),
     filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
+        cb(null, `${Date.now()}-${file.originalname}`);
     },
 });
 const upload = multer({ storage });
@@ -27,73 +33,72 @@ const upload = multer({ storage });
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Function to get a random profile picture from the 'profile' folder
-function getRandomProfilePic() {
+// Utility: Get a random profile picture
+const getRandomProfilePic = () => {
     const profileDir = path.join(__dirname, 'public/profile');
     const profilePics = fs.readdirSync(profileDir).filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file));
     return path.join('profile', profilePics[Math.floor(Math.random() * profilePics.length)]);
-}
+};
 
-// Load file data from JSON
-function loadFileData() {
+// Utility: Load file data from JSON
+const loadFileData = () => {
     try {
         return JSON.parse(fs.readFileSync(fileDataPath, 'utf8'));
-    } catch (err) {
+    } catch {
         return [];
     }
-}
+};
 
-// Save file data to JSON
-function saveFileData(files) {
+// Utility: Save file data to JSON
+const saveFileData = files => {
     fs.writeFileSync(fileDataPath, JSON.stringify(files, null, 2));
-}
+};
 
-// Check and delete expired files
-function checkAndDeleteExpiredFiles() {
+// Utility: Delete expired files
+const checkAndDeleteExpiredFiles = () => {
     const files = loadFileData();
     const currentTime = moment();
     const updatedFiles = files.filter(file => {
         const isExpired = currentTime.isAfter(moment(file.expiresIn));
         if (isExpired) {
             const filePath = path.join(__dirname, 'public/uploads', file.filename);
-            try {
-                if (fs.existsSync(filePath)) {
-                    fs.unlinkSync(filePath); // Delete file from disk
-                }
-            } catch (err) {
-                console.error('Error deleting expired file:', err);
-            }
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath); // Delete file from disk
         }
-        return !isExpired;
+        return !isExpired; // Keep non-expired files
     });
     saveFileData(updatedFiles);
-}
+};
 
-// Route to display uploaded files
+// Route: Home page to display uploaded files
 app.get('/', (req, res) => {
     checkAndDeleteExpiredFiles();
     const files = loadFileData();
     res.render('index', { files });
 });
 
-// Route to handle file upload
+// Route: Upload file
 app.post('/upload', upload.single('file'), (req, res) => {
-    const { name, expiresInMinutes, password } = req.body;
-    if (!name || !req.file || !expiresInMinutes || !password) {
-        return res.status(400).send('Please provide all required fields: name, file, expiration time, and password.');
+    const { name, description, expiresInMinutes, password } = req.body;
+
+    // Validate required fields
+    if (!name || !description || !expiresInMinutes || !password || !req.file) {
+        return res.status(400).send('All fields (name, description, file, expiration time, and password) are required.');
     }
 
+    // Create file metadata
     const fileData = {
         name,
+        description,
         profilePic: getRandomProfilePic(),
         originalname: req.file.originalname,
         filename: req.file.filename,
         fileType: path.extname(req.file.originalname).toLowerCase(),
         uploadedAt: moment().format('YYYY-MM-DD HH:mm:ss'),
-        expiresIn: moment().add(expiresInMinutes, 'minutes').format('YYYY-MM-DD HH:mm:ss'),
+        expiresIn: moment().add(parseInt(expiresInMinutes), 'minutes').format('YYYY-MM-DD HH:mm:ss'),
         password,
     };
 
+    // Save metadata
     const files = loadFileData();
     files.push(fileData);
     saveFileData(files);
@@ -101,26 +106,28 @@ app.post('/upload', upload.single('file'), (req, res) => {
     res.redirect('/');
 });
 
-// Route to handle file download with progress tracking
+// Route: Download file with progress tracking
 app.get('/download/:filename', (req, res) => {
     const filePath = path.join(__dirname, 'public/uploads', req.params.filename);
+
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).send('File not found.');
+    }
+
     const stat = fs.statSync(filePath);
     const fileSize = stat.size;
     const range = req.headers.range;
 
     if (range) {
-        const parts = range.replace(/bytes=/, "").split("-");
-        const start = parseInt(parts[0], 10);
-        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+        const [startStr, endStr] = range.replace(/bytes=/, '').split('-');
+        const start = parseInt(startStr, 10);
+        const end = endStr ? parseInt(endStr, 10) : fileSize - 1;
 
         if (start >= fileSize) {
-            res.status(416).send('Requested range not satisfiable');
-            return;
+            return res.status(416).send('Requested range not satisfiable.');
         }
 
-        const chunkSize = (end - start) + 1;
-        const fileStream = fs.createReadStream(filePath, { start, end });
-
+        const chunkSize = end - start + 1;
         res.writeHead(206, {
             'Content-Range': `bytes ${start}-${end}/${fileSize}`,
             'Accept-Ranges': 'bytes',
@@ -128,7 +135,7 @@ app.get('/download/:filename', (req, res) => {
             'Content-Type': 'application/octet-stream',
         });
 
-        fileStream.pipe(res);
+        fs.createReadStream(filePath, { start, end }).pipe(res);
     } else {
         res.writeHead(200, {
             'Content-Length': fileSize,
@@ -139,7 +146,7 @@ app.get('/download/:filename', (req, res) => {
     }
 });
 
-// Route to handle file deletion
+// Route: Delete file
 app.post('/delete/:filename', (req, res) => {
     const { filename } = req.params;
     const { deletePassword } = req.body;
@@ -160,16 +167,13 @@ app.post('/delete/:filename', (req, res) => {
     saveFileData(files);
 
     const filePath = path.join(__dirname, 'public/uploads', filename);
-    fs.unlink(filePath, err => {
-        if (err) {
-            console.error('Error deleting file:', err);
-            return res.status(500).send('Error deleting file.');
-        }
-        res.redirect('/');
-    });
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+    res.redirect('/');
 });
 
-// Start server on port 3000
-app.listen(3000, () => {
-    console.log('Server running on http://localhost:3000');
+// Start server
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
 });
